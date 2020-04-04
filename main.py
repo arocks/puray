@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Puray - a Pure Python Raytracer by Arun Ravindran, 2019"""
 import argparse
+import math
+from random import randint
 
 from color import Color
 from engine import RenderEngine
@@ -16,11 +18,33 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("imageout", help="Path to rendered image")
     args = parser.parse_args()
-    WIDTH = 320
-    HEIGHT = 200
+    WIDTH = 1920
+    HEIGHT = 1080
     camera = Vector(0, 0, -1)
-    objects = [Sphere(Point(0, 0, 0), 0.5, Material(Color.from_hex("#FF0000")))]
-    lights = [Light(Point(1.5, -0.5, -10.0), Color.from_hex("#FFFFFF"))]
+    lights = [Light(Point(1.5, -0.5, -10.0), Color.from_hex("#FF4900"))]
+    # Model of the Corona Virus
+    radius = 0.2
+    objects = [Sphere(Point(0, 0, 0), radius, Material(Color.from_hex("#FF7701")))]
+    # Add spiky blob filaments
+    slices = 32
+    for i in range(slices):
+        angle = math.radians(360.0 / slices * i + randint(-2, 2))
+        for j in range(3):
+            # convert polar coordinates into Cartesian coordinates
+            stem_radius = 0.008
+            x = (radius + stem_radius * j) * math.sin(angle)
+            y = (radius + stem_radius * j) * math.cos(angle)
+            objects.append(
+                Sphere(Point(x, y, 0), stem_radius, Material(Color.from_hex("#d47721")))
+            )
+        # ending blob
+        blob_radius = 0.01
+        x = (radius + stem_radius * j + blob_radius) * math.sin(angle)
+        y = (radius + stem_radius * j + blob_radius) * math.cos(angle)
+        objects.append(
+            Sphere(Point(x, y, 0), blob_radius, Material(Color.from_hex("#febd14")))
+        )
+
     scene = Scene(camera, objects, lights, WIDTH, HEIGHT)
     engine = RenderEngine()
     image = engine.render(scene)
