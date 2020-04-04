@@ -26,10 +26,11 @@ def main():
     radius = 0.2
     objects = [Sphere(Point(0, 0, 0), radius, Material(Color.from_hex("#FF7701")))]
     # Add spiky blob filaments
-    slices = 32
-    for i in range(slices):
-        angle = math.radians(360.0 / slices * i + randint(-2, 2))
-        for j in range(3):
+    spikes = 32
+    stem_length = 3
+    for i in range(spikes):
+        angle = math.radians(360.0 / spikes * i + randint(-2, 2))
+        for j in range(stem_length):
             # convert polar coordinates into Cartesian coordinates
             stem_radius = 0.008
             x = (radius + stem_radius * j) * math.sin(angle)
