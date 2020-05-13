@@ -7,6 +7,9 @@ from ray import Ray
 class RenderEngine:
     """Renders 3D objects into 2D objects using ray tracing"""
 
+    MAX_DEPTH = 5
+    MIN_DISPLACE = 0.0001
+
     def render(self, scene):
         width = scene.width
         height = scene.height
@@ -30,7 +33,7 @@ class RenderEngine:
             print("{:3.0f}%".format(float(j) / float(height) * 100), end="\r")
         return pixels
 
-    def ray_trace(self, ray, scene):
+    def ray_trace(self, ray, scene, depth=0):
         color = Color(0, 0, 0)
         # Find the nearest object hit by the ray in the scene
         dist_hit, obj_hit = self.find_nearest(ray, scene)
@@ -39,6 +42,16 @@ class RenderEngine:
         hit_pos = ray.origin + ray.direction * dist_hit
         hit_normal = obj_hit.normal(hit_pos)
         color += self.color_at(obj_hit, hit_pos, hit_normal, scene)
+        if depth < self.MAX_DEPTH:
+            new_ray_pos = hit_pos + hit_normal * self.MIN_DISPLACE
+            new_ray_dir = (
+                ray.direction - 2 * ray.direction.dot_product(hit_normal) * hit_normal
+            )
+            new_ray = Ray(new_ray_pos, new_ray_dir)
+            # Attenuate the reflected ray by the reflection coefficient
+            color += (
+                self.ray_trace(new_ray, scene, depth + 1) * obj_hit.material.reflection
+            )
         return color
 
     def find_nearest(self, ray, scene):
